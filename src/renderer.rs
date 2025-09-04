@@ -156,6 +156,12 @@ impl Textures {
 }
 
 pub fn render(world: &WorldState, textures: &Textures) {
+    // Hack to draw deck by pretending it's like a tile.
+    let deck_placement = TilePlacement {
+        x: 0, y: 0, rotation: 0, tile: Default::default(),
+    };
+    self::draw_tile(&deck_placement, textures, 1.0, true);
+
     let held_tile = world.held_tile.as_ref();
 
     let count = (world.tiles.len() + if held_tile.is_some() { 1 } else { 0 }) as f32;
@@ -190,10 +196,4 @@ pub fn render(world: &WorldState, textures: &Textures) {
     for tile in world_tiles {
         draw_tile(&tile);
     }
-
-    // Hack to draw deck by pretending it's like a tile.
-    let deck_placement = TilePlacement {
-        x: 0, y: 0, rotation: 0, tile: Default::default(),
-    };
-    self::draw_tile(&deck_placement, textures, 1.0, true);
 }

@@ -21,7 +21,10 @@ fn random_tile() -> Tile {
 
     let mut rng = ::rand::rng();
     let mut tile = Tile { top: vec![], bottom_left: vec![], bottom_right: vec![], center: vec![] };
-    for _ in 0..5 {
+    let mut has_center_coin = false;
+    let mut has_corner_coin = false;
+
+    for _ in 0..rng.random_range(3..=5) {
         loop {
             let symbol = match rng.random_range(0..4) {
                 0 => SYMBOL::FRIEND,
@@ -31,22 +34,43 @@ fn random_tile() -> Tile {
                 _ => unreachable!(),
             };
 
-            let slot = match rng.random_range(0..4) {
-                0 => &mut tile.center,
-                1 => &mut tile.top,
-                2 => &mut tile.bottom_right,
-                3 => &mut tile.bottom_left,
+            let (slot, is_center) = match rng.random_range(0..4) {
+                0 => (&mut tile.center, true),
+                1 => (&mut tile.top, false),
+                2 => (&mut tile.bottom_right, false),
+                3 => (&mut tile.bottom_left, false),
                 _ => unreachable!(),
             };
 
-
             // Max 2 symbols per slot
-            if slot.len() < 2 {
-                //if symbol != SYMBOL::COIN || !slot.contains(&SYMBOL::COIN) {
-                    slot.push(symbol);
-                    break;
-                //}
+            if slot.len() == 2 {
+                continue;
             }
+
+            // Coins cannot be adjacent.
+            if symbol == SYMBOL::COIN {
+                // Check for 2 in the same slot.
+                if slot.contains(&SYMBOL::COIN) {
+                    continue;
+                }
+
+                // Check for any pair of corner/center
+                // (no corners are adjacent, and the center is adjacent to all corners)
+                if is_center {
+                    if has_corner_coin {
+                        continue;
+                    }
+                    has_center_coin = true;
+                } else {
+                    if has_center_coin {
+                        continue;
+                    }
+                    has_corner_coin = true;
+                }
+            }
+
+            slot.push(symbol);
+            break;
         }
     }
 
